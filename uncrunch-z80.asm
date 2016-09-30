@@ -10,6 +10,7 @@
 ;*  V1.1 - Various optimizations, 23-Jul-99
 ;*  V1.2 - Even more optimizations, 23-Jul-99
 ;*  V1.3 - Fixed a bug in the code. 256 byte copy didn't work. 24-Feb-00
+;*  V1.4 - Update to work with 15-byte RLE table used by newer versions of pucrunch. 30-Sep-16
 ;*
 ;* Note: If you unpack to VRAM than the screen needs to be
 ;* turned off because no checks for VRAM available are made.
@@ -31,7 +32,7 @@
 ; db extraLZPosBits;
 ;;; db (exec & 0xff)
 ;;; db (exec >> 8)
-; db rleUsed (31)  ;needed
+; db rleUsed (15)  ;needed
 ; ds rleUsed
 ;  ....data....
 
@@ -53,7 +54,7 @@ Max1Gamma       DB
 Max2Gamma       DB
 Max8Gamma       DB
 ExtraBits       DB
-tablePu         DS      31
+tablePu         DS      15
 
 
         SECTION "Pucrunch High Vars",HRAM
@@ -118,7 +119,7 @@ Unpack:
 
         ld      de,tablePu
 
-; Copy the RLE table (maximum of 31 bytes) to RAM
+; Copy the RLE table (maximum of 15 bytes) to RAM
 
         inc     b
         srl     b
@@ -137,10 +138,7 @@ Unpack:
         dec     b
         jr      nz,.rleloop
 
-
-
         ld      d,$80
-
         jr      .main
 
 
@@ -270,17 +268,17 @@ Unpack:
         ld      b,a
 
         ld      a,e
-        cp      32              ; 31-32 -> C set, 32-32 -> C clear..
+        cp      16              ; 15-16 -> C set, 16-16 -> C clear..
         ld      a,[bc]
-        jr      c,.less32       ; 1..31
+        jr      c,.less32       ; 1..15
 
-	; Not ranks 1..31, -> 11111°xxxxx (32..64), get byte..
+	; Not ranks 1..15, -> 111111°xxxx (16..32), get byte..
 
-        ld      a,e        ; get back the value (5 valid bits)
+        ld      a,e        ; get back the value (4 valid bits)
 
-        ld      e,3
+        ld      e,4
 
-        call    .getbits        ; get 3 more bits to get a full byte, X=3 -> X=0
+        call    .getbits        ; get 4 more bits to get a full byte, X=4 -> X=0
 
 .less32:
         push    hl
