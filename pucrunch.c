@@ -1631,7 +1631,7 @@ int UnPack(int loadAddr, const unsigned char *data, const char *file,
 	    error++;
 	}
 	if (up_Byte > size + overlap) {
-	    fprintf(stderr, "Error: No EOF symbol found (%d > %d).\n",
+	    fprintf(stderr, "Error: No EOF symbol found (%d > %ld).\n",
 		    up_Byte, size + overlap);
 	    error++;
 	}
