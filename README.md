@@ -1,7 +1,11 @@
 First Version 14.3.1997, Rewritten Version 17.12.1997
+
 Another Major Update 14.10.1998
+
 Last Updated 22.11.2008
+
 Pasi Ojala, [a1bert@iki.fi](http://www.iki.fi/a1bert/)
+
 Converted to markdown & removed dead links 29/12/2023 by Ralph Moeritz
 
 An Optimizing Hybrid LZ77 RLE Data Compression Program, aka
@@ -15,7 +19,7 @@ Gamma Code for lengths, mixture of Gamma Code and linear for LZ77
 offset, and ranked RLE bytes indexed by the same Gamma Code. Uses no
 extra memory in decompression.
 
-[Programs](#Progs) - Source code and executables
+[Programs](#Progs) - Source code
 
 ***
 
@@ -844,16 +848,18 @@ counts for all locations that belonged to the RLE, because by
 definition there are only one-valued bytes in each one. Let us mark
 the current file position by P.
 
-    unsigned char \*a = indata + P, val = \*a++;
+```c
+    unsigned char *a = indata + P, val = *a++;
     int top = inlen - P;
     int rlelen = 1;
 
-    /\* Loop for the whole RLE \*/
-    while (rlelen<top && \*a++ == val)
+    /* Loop for the whole RLE */
+    while (rlelen<top && *a++ == val)
         rlelen++;
 
     for (i=0; i<rlelen-1; i++)
-        rle\[P+i\] = rlelen-i;
+        rle[P+i] = rlelen-i;
+```
 
 With LZ77 we can't use the same technique as for RLE (i.e. using the
 information about current match to skip subsequent file locations to
@@ -930,13 +936,15 @@ represented as a table, using the same indexing as the file
 positions. To locate the previous occurrance of a 2-byte string
 starting at location P, look at backSkip\[P\].
 
-    /\* Update the two-byte history & backSkip \*/
+```c
+    /* Update the two-byte history & backSkip */
     if (P+1<inlen) {
-        int index = (indata\[P\]<<8) | indata\[P+1\];
+        int index = (indata[P]<<8) | indata[P+1];
  
-        backSkip\[P\] = lastPair\[index\];
-        lastPair\[index\] = P+1;
+        backSkip[P] = lastPair[index];
+        lastPair[index] = P+1;
     }
+```
 
 Actually the values in the table are one bigger than the real table
 indices. This is because the values are of type unsigned short (can
@@ -948,15 +956,17 @@ consider much faster, because it is a single table reference. The
 compression time was reduced from 6 minutes to 1 minute 10
 seconds. Quite an improvement from the original 28 minutes!
 
-        backSkip\[\]   lastPair\[\]
-    \_\_\_  \_\_\_\_\_\_\_  \_\_\_\_
-       \\/       \\/    \\
+```
+        backSkip[]   lastPair[]
+    ___  _______  ____
+       \/       \/    \
     ...JOVE.....JOKA..JOKER
        ^        ^     ^
        |        |     |
        next     |     position
                 current match (3)
        C        B     A
+```
 
 In this example we are looking at the string "JOKER" at location
 A. Using the lastPair\[\] table (with the index "JO", the byte values
@@ -990,13 +1000,13 @@ position and then checks if the located position has equal number (and
 value) of RLE bytes before it.
 
 ```
-backSkip\[\]      lastPair\[\]
-     \_\_\_\_\_  \_\_\_\_\_\_\_\_
-          \\/        \\
-       ...AB.....A..ABCD    rle\[p\] # of A's, B is something else
+backSkip[]      lastPair[]
+     _____  ________
+          \/        \
+       ...AB.....A..ABCD    rle[p] # of A's, B is something else
           ^      ^  ^
           |      |  |
-          i      p  p+rle\[p\]-1
+          i      p  p+rle[p]-1
 ```
 
 The algorithm searches for a two-byte string which starts at p +
@@ -1234,7 +1244,6 @@ the bit input routine so further optimization of this routine is not
 feasible.
 
 ```
-
 newesc	ldy esc		; remember the old code (top bits for escaped byte)
 	ldx #2		; ** PARAMETER
 	jsr getchkf	; get & save the new escape code
@@ -1261,6 +1270,7 @@ escape code, we get more bits to complete a byte and then output the
 result. If the escape bits match, we have to do further checks to see
 what to do.
 
+```
 	jsr getval	; X = 0
 	sta xstore	; save the length for a later time
 	cmp #1		; LEN == 2 ?
@@ -1268,8 +1278,9 @@ what to do.
 	tya		; A = 0
 	jsr get1bit	; X = 0
 	lsr		; bit -> C, A = 0
-	bcc lz77\_2	; A=0 -> LZPOS+1
-	;\*\*\*FALL THRU\*\*\*
+	bcc lz77_2	; A=0 -> LZPOS+1
+	;***FALL THRU***
+```
 
 We first get the Elias Gamma Code value (or actually my independently
 developed version). If it says the LZ77 match length is greater than
@@ -1364,15 +1375,16 @@ of bytes from the already decompressed portion to the current output
 position.
 
 ```
+
 lz77	jsr getval	; X=0 -> X=0
-	cmp #127	; \*\* PARAMETER	Clears carry (is maximum value)
+	cmp #127	; ** PARAMETER	Clears carry (is maximum value)
 	beq eof		; EOF
 
 	sbc #0		; C is clear -> subtract 1  (1..126 -> 0..125)
-	ldx #0		; \*\* PARAMETER (more bits to get)
+	ldx #0		; ** PARAMETER (more bits to get)
 	jsr getchkf	; clears Carry, X=0 -> X=0
 
-lz77\_2	sta LZPOS+1	; offset MSB
+lz77_2	sta LZPOS+1	; offset MSB
 	ldx #8
 	jsr getbits	; clears Carry, X=8 -> X=0
 			; Note: Already eor:ed in the compressor..
@@ -2187,7 +2199,7 @@ be incremented (inc $2c30 instead of bit $d030) when run without the
 
 ### 21.10.1998
 
-Added interrupt state (\-i�val�) and memory configuration (\-g�val�)
+Added interrupt state (`-i<val>`) and memory configuration (`-g<val>`)
 settings. These settings define which memory configuration is used and
 whether interrupts will be enabled or disabled after
 decompression. The executables have been recompiled.
