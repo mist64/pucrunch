@@ -1,4 +1,9 @@
 all: pucrunch
 
+.PHONY: clean
+
 pucrunch: pucrunch.c pucrunch.h
-	gcc -Wall -funsigned-char pucrunch.c -o pucrunch -O -lm -Dstricmp=strcasecmp
+	gcc -Wall -Wno-pointer-sign -funsigned-char pucrunch.c -o pucrunch -O3 -lm -Dstricmp=strcasecmp
+
+clean:
+	rm -f pucrunch
